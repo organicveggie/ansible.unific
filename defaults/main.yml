@@ -1,0 +1,21 @@
+unific_hostname: unific
+unific_host_domain: example.com
+
+unific_timezone: America/Los_Angeles
+unific_memory: 1G
+
+###
+### Directories
+###
+unific_dir_data: "/var/lib/unifi"
+unific_dir_log: "/var/log/unifi"
+unific_dir_cert: "/var/cert/unifi"
+unific_dir_run: "/var/run/unifi"
+
+###
+### Traefik support
+###
+unific_available_externally: "false"
+unific_traefik_router_rule: "Host(`{{ unific_hostname }}.{{ unific_host_domain }}`)"
+unific_traefik_router_tls_certresolver: "letsencrypt"
+unific_traefik_https_port: "8443"

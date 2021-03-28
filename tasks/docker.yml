@@ -1,0 +1,70 @@
+---
+- name: Install python3-pip
+  ansible.builtin.apt:
+    name: python3-pip
+    state: present
+  register: result
+  until: result is succeeded
+
+- name: Remove docker-py python module
+  ansible.builtin.pip:
+    name: docker-py
+    state: absent
+  register: result
+  until: result is succeeded
+
+- name: Install docker python module
+  ansible.builtin.pip:
+    name: docker
+    state: present
+  register: result
+  until: result is succeeded
+
+- name: Create UniFi Controller Directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ unific_dir_data }}"
+    - "{{ unific_dir_log }}"
+    - "{{ unific_dir_cert }}"
+    - "{{ unific_dir_run }}"
+
+- name: UniFi Controller Docker Container
+  community.docker.docker_container:
+    name: unific
+    image: jacobalberty/unifi:stable
+    pull: true
+    volumes:
+      - "{{ unific_dir_data }}:/unifi/data:rw"
+      - "{{ unific_dir_log }}:/unifi/log:rw"
+      - "{{ unific_dir_cert }}:/unifi/cert:rw"
+      - "{{ unific_dir_run }}:/var/run/unifi:rw"
+    network_mode: host
+    env:
+      TZ: "{{ unific_timezone }}"
+    exposed_ports:
+      - "8080/tcp"
+      - "8443/tcp"
+      - "8843/tcp"
+      - "8880/tcp"
+      - "3478/udp"
+      - "6789/tcp"
+    restart_policy: unless-stopped
+    memory: "{{ unific_memory }}"
+    container_default_behavior: no_defaults
+    auto_remove: no
+    detach: yes
+    init: no
+    interactive: no
+    paused: no
+    privileged: no
+    read_only: no
+    tty: no
+    labels:
+      traefik.enable: "{{ unific_available_externally }}"
+      traefik.http.routers.unific.rule: "{{ unific_traefik_router_rule | default(omit) }}"
+      traefik.http.routers.unific.tls.certresolver: "{{ unific_traefik_router_tls_certresolver | default(omit) }}"
+      traefik.http.routers.unific.tls.domains[0].main: "*.{{ unific_host_domain }}"
+      traefik.http.services.unific.loadbalancer.server.port: "{{ unific_traefik_https_port | default(omit) }}"
+  register: unific_docker
