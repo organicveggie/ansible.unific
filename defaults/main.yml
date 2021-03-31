@@ -4,6 +4,8 @@ unific_host_domain: example.com
 unific_timezone: America/Los_Angeles
 unific_memory: 1G
 
+unific_network_mode: "host"
+
 ###
 ### Directories
 ###
