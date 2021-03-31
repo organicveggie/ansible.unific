@@ -64,6 +64,7 @@
       - "8443:8443"
       - "10001:10001/udp"
     restart_policy: unless-stopped
+    cpus: "{{ unific_cpus }}"
     memory: "{{ unific_memory }}"
     container_default_behavior: no_defaults
     auto_remove: no

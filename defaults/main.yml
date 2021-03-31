@@ -2,6 +2,7 @@ unific_hostname: unific
 unific_host_domain: example.com
 
 unific_timezone: America/Los_Angeles
+unific_cpus: 1
 unific_memory: 1G
 
 unific_network_mode: "host"
