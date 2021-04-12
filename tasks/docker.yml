@@ -78,6 +78,7 @@
     labels:
       traefik.enable: "{{ unific_available_externally }}"
       traefik.http.routers.unific.rule: "{{ unific_traefik_router_rule | default(omit) }}"
+      traefik.http.routers.unific.entrypoints: "{{ unific_traefik_router_entrypoints | default(omit) }}"
       traefik.http.routers.unific.tls: "true"
       traefik.http.routers.unific.tls.certresolver: "{{ unific_traefik_router_tls_certresolver | default(omit) }}"
       traefik.http.routers.unific.tls.domains[0].main: "*.{{ unific_host_domain }}"

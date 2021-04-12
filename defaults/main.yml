@@ -20,5 +20,6 @@ unific_dir_run: "/var/run/unifi"
 ###
 unific_available_externally: "false"
 unific_traefik_router_rule: "Host(`{{ unific_hostname }}.{{ unific_host_domain }}`)"
+unific_traefik_router_entrypoints: ”http,https"
 unific_traefik_router_tls_certresolver: "letsencrypt"
 unific_traefik_https_port: "8443"
