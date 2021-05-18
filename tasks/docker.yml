@@ -44,7 +44,7 @@
 - name: UniFi Controller Docker Container
   community.docker.docker_container:
     name: unific
-    image: jacobalberty/unifi:stable
+    image: "jacobalberty/unifi:{{ unific_image_tag }}"
     pull: true
     volumes:
       - "{{ unific_dir_data }}:/unifi/data:rw"
