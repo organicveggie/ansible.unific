@@ -2,3 +2,4 @@ vault-passwd
 pyenv
 .vagrant
 roles
+pyvenv

@@ -1,34 +1,19 @@
 ---
-- name: Install python3-pip
-  ansible.builtin.apt:
-    name: python3-pip
-    state: present
-  register: result
-  until: result is succeeded
+- name: Create unific Docker volumes
+  community.docker.docker_volume:
+    name: "{{ unific_docker_volume_name }}"
 
-- name: Remove docker-py python module
-  ansible.builtin.pip:
-    name: docker-py
-    state: absent
-  register: result
-  until: result is succeeded
-
-- name: Install docker python module
-  ansible.builtin.pip:
-    name: docker
-    state: present
-  register: result
-  until: result is succeeded
-
-- name: Create UniFi Controller Directories
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: directory
-  with_items:
-    - "{{ unific_dir_data }}"
-    - "{{ unific_dir_log }}"
-    - "{{ unific_dir_cert }}"
-    - "{{ unific_dir_run }}"
+- name: Create unific Docker network
+  community.docker.docker_network:
+    name: "{{ unific_network_name }}"
+    driver: "bridge"
+    enable_ipv6: "no"
+    internal: "no"
+    scope: "local"
+    ipam_config:
+      - subnet: "{{ unific_network_subnet }}"
+        gateway: "{{ unific_network_gateway }}"
+  when: unific_docker_network_created is not defined
 
 # UDP 3478 Port used for STUN. #REQUIRED
 # TCP 5514 Port used for remote syslog capture.
@@ -46,23 +31,30 @@
     name: unific
     image: "jacobalberty/unifi:{{ unific_image_tag }}"
     pull: true
-    volumes:
-      - "{{ unific_dir_data }}:/unifi/data:rw"
-      - "{{ unific_dir_log }}:/unifi/log:rw"
-      - "{{ unific_dir_cert }}:/unifi/cert:rw"
-      - "{{ unific_dir_run }}:/var/run/unifi:rw"
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-    network_mode: "{{ unific_network_mode }}"
+    mounts:
+      - source: "/etc/localtime"
+        target: "/etc/localtime:"
+        read_only: true
+        type: "bind"
+      - source: "/etc/timezone"
+        target: "/etc/timezone:"
+        read_only: true
+        type: "bind"
+      - source: "{{ unific_docker_volume_name }}"
+        target: "/unifi"
+        type: "volume"
+    network_mode: "{{ unific_network_name }}"
+    networks:
+      - name: "{{ unific_network_name }}"
     env:
       TZ: "{{ unific_timezone }}"
     ports:
-      - "1900:1900/udp"
       - "3478:3478/udp"
-      - "6789:6789"
       - "8080:8080"
-      - "8443:8443"
+      - "6789:6789"
       - "10001:10001/udp"
+      - "1900:1900/udp"
+      # - "8443:8443" # Handled by Traefik Proxy
     restart_policy: unless-stopped
     cpus: "{{ unific_cpus }}"
     memory: "{{ unific_memory }}"
@@ -84,4 +76,12 @@
       traefik.http.routers.unific.tls.domains[0].main: "*.{{ unific_host_domain }}"
       traefik.http.services.unific.loadbalancer.server.scheme: "https"
       traefik.http.services.unific.loadbalancer.server.port: "{{ unific_traefik_https_port | default(omit) }}"
-  register: unific_docker
+  register: unific_docker_started
+
+- name: Add unific container to any extra networks
+  community.docker.docker_network:
+    name: "{{ item }}"
+    connected:
+      - "unific"
+    appends: yes
+  loop: "{{ unific_docker_extra_networks }}"

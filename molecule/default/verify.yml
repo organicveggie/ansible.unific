@@ -1,0 +1,25 @@
+- name: Verify
+  hosts: all
+  gather_facts: false
+
+  vars:
+    unific_docker_volume_name: "unific-data"
+
+  tasks:
+  - name: Get info on volume
+    community.docker.docker_volume_info:
+      name: "{{ unific_docker_volume_name }}"
+    register: volume_info
+
+  - name: Verify volume exists
+    assert:
+      that: volume_info.exists
+
+  - name: Get info on container
+    community.docker.docker_container_info:
+      name: "unific"
+    register: container_info
+
+  - name: Verify container exists
+    assert:
+      that: container_info.exists

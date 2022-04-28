@@ -1,7 +1,0 @@
----
-- hosts: unific-test
-  remote_user: root
-  roles:
-    - geerlingguy.docker
-    - geerlingguy.pip
-    - ansible.unific

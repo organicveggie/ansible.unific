@@ -4,18 +4,19 @@ unific_hostname: unific
 unific_host_domain: example.com
 
 unific_timezone: America/Los_Angeles
+
+# Docker
 unific_cpus: 1
 unific_memory: 1G
+unific_docker_volume_name: "unific-data"
 
-unific_network_mode: "host"
+unific_network_name: "unific"
+unific_docker_extra_networks: []
+unific_network_subnet: "172.100.3.0/24"
+unific_network_gateway: "172.100.3.1"
 
-###
-### Directories
-###
-unific_dir_data: "/var/lib/unifi"
-unific_dir_log: "/var/log/unifi"
-unific_dir_cert: "/var/cert/unifi"
-unific_dir_run: "/var/run/unifi"
+## Uncomment this to prevent the role from creating the Docker network.
+# unific_docker_network_created: true
 
 ###
 ### Traefik support
