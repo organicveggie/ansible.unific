@@ -3,11 +3,11 @@
   gather_facts: false
 
   vars:
-    unific_hostname: "unific"
-    unific_docker_volume_name: "unific-data"
-    unific_network_name: "unific"
-    unific_network_subnet: "172.100.3.0/24"
-    unific_network_gateway: "172.100.3.1"
+    unific_hostname: "unifictest"
+    unific_docker_volume_name: "unific-test-data"
+    unific_network_name: "utestlan"
+    unific_network_subnet: "172.200.3.0/24"
+    unific_network_gateway: "172.200.3.1"
 
   tasks:
   - name: Get info on volume
@@ -33,8 +33,8 @@
   - name: Verify container labels
     assert:
       that:
-        - coninfo.container['Config']['Labels']['traefik.enable'] == 'false'
-        - coninfo.container['Config']['Labels']['traefik.http.routers.unific.rule'] == "Host(`unific.example.com`)"
+        - coninfo.container['Config']['Labels']['traefik.enable'] == 'true'
+        - coninfo.container['Config']['Labels']['traefik.http.routers.unific.rule'] == "Host(`{{ unific_hostname }}.example.com`)"
         - coninfo.container['Config']['Labels']['traefik.http.routers.unific.entrypoints'] == 'http,https'
         - coninfo.container['Config']['Labels']['traefik.http.routers.unific.tls.certresolver'] == 'letsencrypt'
 
@@ -43,11 +43,6 @@
       name: "{{ unific_network_name }}"
     register: ninfo
 
-  # - name: show dictionary
-  #   debug:
-  #     msg: "{{item.key}}: {{item.value}}"
-  #   loop: "{{ lookup('dict', ninfo.network) }}"
-
   - name: Verify docker network
     assert:
       that:
@@ -55,4 +50,5 @@
         - ninfo.network['Driver'] == 'bridge'
         - ninfo.network['IPAM']['Config'][0]['Subnet'] == "{{ unific_network_subnet }}"
         - ninfo.network['IPAM']['Config'][0]['Gateway'] == "{{ unific_network_gateway }}"
-        - ninfo.network['Containers']["{{ coninfo.container['Id'] }}"]['Name'] == "{{ unific_hostname }}"
+        # Note that the network is tied to the container name, not the hostname
+        - ninfo.network['Containers']["{{ coninfo.container['Id'] }}"]['Name'] == "unific"

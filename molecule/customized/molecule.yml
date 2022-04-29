@@ -1,4 +1,7 @@
 ---
+scenario:
+  name: customized
+
 dependency:
   name: galaxy
   options:
@@ -21,6 +24,16 @@ provisioner:
   name: ansible
   playbooks:
     converge: ../resources/playbooks/converge.yml
+  inventory:
+    host_vars:
+      instance:
+        unific_hostname: "unifictest"
+        unific_docker_volume_name: "unific-test-data"
+        unific_network_name: "utestlan"
+        unific_network_subnet: "172.200.3.0/24"
+        unific_network_gateway: "172.200.3.1"
+        unific_available_externally: "true"
+
 
 verifier:
   name: ansible
