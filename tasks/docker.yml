@@ -50,11 +50,9 @@
       TZ: "{{ unific_timezone }}"
     ports:
       - "3478:3478/udp"
-      - "8080:8080"
       - "6789:6789"
       - "10001:10001/udp"
       - "1900:1900/udp"
-      # - "8443:8443" # Handled by Traefik Proxy
     restart_policy: unless-stopped
     cpus: "{{ unific_cpus }}"
     memory: "{{ unific_memory }}"
@@ -76,6 +74,26 @@
       traefik.http.routers.unific.tls.domains[0].main: "*.{{ unific_host_domain }}"
       traefik.http.services.unific.loadbalancer.server.scheme: "https"
       traefik.http.services.unific.loadbalancer.server.port: "{{ unific_traefik_https_port | default(omit) }}"
+      # TCP 6789 Port used for UniFi mobile speed test. #REQUIRED
+      traefik.tcp.routers.unific_speed_test.entrypoints: "unific_speed_test"
+      traefik.tcp.routers.unific_speed_test.rule: "HostSNI(`*`)"
+      traefik.tcp.routers.unific_speed_test.service: "unific_speed_test"
+      traefik.tcp.services.unific_speed_test.loadbalancer.server.port: "6789"
+      # UDP 3478 Port used for STUN. #REQUIRED
+      traefik.udp.routers.unific_stun.entrypoints: "unific_stun"
+      traefik.udp.routers.unific_stun.rule: "HostSNI(`*`)"
+      traefik.udp.routers.unific_stun.service: "unific_stun"
+      traefik.udp.services.unific_stun.loadbalancer.server.port: "3478"
+      # UDP 10001 Port used for device discovery #REQUIRED
+      traefik.udp.routers.unific_dev_discovery.entrypoints: "unific_dev_discovery"
+      traefik.udp.routers.unific_dev_discovery.rule: "HostSNI(`*`)"
+      traefik.udp.routers.unific_dev_discovery.service: "unific_dev_discovery"
+      traefik.udp.services.unific_dev_discovery.loadbalancer.server.port: "10001"
+      # UDP 1900 Port used for "Make controller discoverable on L2 network" in controller settings.
+      traefik.udp.routers.unific_controller_discovery.entrypoints: "unific_controller_discovery"
+      traefik.udp.routers.unific_controller_discovery.rule: "HostSNI(`*`)"
+      traefik.udp.routers.unific_controller_discovery.service: "unific_controller_discovery"
+      traefik.udp.services.unific_controller_discovery.loadbalancer.server.port: "19000"
   register: unific_docker_started
 
 - name: Add unific container to any extra networks

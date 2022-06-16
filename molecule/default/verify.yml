@@ -37,16 +37,15 @@
         - coninfo.container['Config']['Labels']['traefik.http.routers.unific.rule'] == "Host(`unific.example.com`)"
         - coninfo.container['Config']['Labels']['traefik.http.routers.unific.entrypoints'] == 'http,https'
         - coninfo.container['Config']['Labels']['traefik.http.routers.unific.tls.certresolver'] == 'letsencrypt'
+        - coninfo.container['Config']['Labels']['traefik.tcp.services.unific_speed_test.loadbalancer.server.port'] == '6789'
+        - coninfo.container['Config']['Labels']['traefik.udp.services.unific_stun.loadbalancer.server.port'] == '3478'
+        - coninfo.container['Config']['Labels']['traefik.udp.services.unific_dev_discovery.loadbalancer.server.port'] == '10001'
+        - coninfo.container['Config']['Labels']['traefik.udp.services.unific_controller_discovery.loadbalancer.server.port'] == '19000'
 
   - name: Get info on network
     community.docker.docker_network_info:
       name: "{{ unific_network_name }}"
     register: ninfo
-
-  # - name: show dictionary
-  #   debug:
-  #     msg: "{{item.key}}: {{item.value}}"
-  #   loop: "{{ lookup('dict', ninfo.network) }}"
 
   - name: Verify docker network
     assert:
