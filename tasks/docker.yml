@@ -48,11 +48,6 @@
       - name: "{{ unific_network_name }}"
     env:
       TZ: "{{ unific_timezone }}"
-    ports:
-      - "3478:3478/udp"
-      - "6789:6789"
-      - "10001:10001/udp"
-      - "1900:1900/udp"
     restart_policy: unless-stopped
     cpus: "{{ unific_cpus }}"
     memory: "{{ unific_memory }}"
@@ -67,30 +62,37 @@
     tty: no
     labels:
       traefik.enable: "{{ unific_available_externally }}"
-      traefik.http.routers.unific.rule: "{{ unific_traefik_router_rule | default(omit) }}"
-      traefik.http.routers.unific.entrypoints: "{{ unific_traefik_router_entrypoints | default(omit) }}"
-      traefik.http.routers.unific.tls: "true"
-      traefik.http.routers.unific.tls.certresolver: "{{ unific_traefik_router_tls_certresolver | default(omit) }}"
-      traefik.http.routers.unific.tls.domains[0].main: "*.{{ unific_host_domain }}"
-      traefik.http.services.unific.loadbalancer.server.scheme: "https"
-      traefik.http.services.unific.loadbalancer.server.port: "{{ unific_traefik_https_port | default(omit) }}"
+      traefik.http.routers.unific-web.rule: "{{ unific_traefik_router_rule | default(omit) }}"
+      traefik.http.routers.unific-web.entrypoints: "{{ unific_traefik_router_entrypoints | default(omit) }}"
+      traefik.http.routers.unific-web.service: "unific-web"
+      traefik.http.routers.unific-web.tls: "true"
+      traefik.http.routers.unific-web.tls.certresolver: "{{ unific_traefik_router_tls_certresolver | default(omit) }}"
+      traefik.http.routers.unific-web.tls.domains[0].main: "*.{{ unific_host_domain }}"
+      traefik.http.services.unific-web.loadbalancer.server.scheme: "https"
+      traefik.http.services.unific-web.loadbalancer.server.port: "{{ unific_traefik_https_port | default(omit) }}"
+      # TCP 8080 Port used for device and controller communication. #REQUIRED
+      traefik.http.routers.unific-comms.entrypoints: "java_http"
+      traefik.http.routers.unific-comms.rule: "{{ unific_traefik_router_rule }}"
+      traefik.http.routers.unific-comms.service: "unific-comms"
+      traefik.http.services.unific-comms.loadbalancer.server.port: "8080"
+      traefik.http.services.unific-comms.loadbalancer.server.scheme: "http"
       # TCP 6789 Port used for UniFi mobile speed test. #REQUIRED
-      traefik.tcp.routers.r-unific-speed-test.entrypoints: "unific_speed_test"
-      traefik.tcp.routers.r-unific-speed-test.rule: "HostSNI(`*`)"
-      traefik.tcp.routers.r-unific-speed-test.service: "svc-unific-speed-test"
-      traefik.tcp.services.svc-unific-speed-test.loadbalancer.server.port: "6789"
+      traefik.tcp.routers.unific-speed-test.entrypoints: "unific_speed_test"
+      traefik.tcp.routers.unific-speed-test.rule: "HostSNI(`*`)"
+      traefik.tcp.routers.unific-speed-test.service: "unific-speed-test"
+      traefik.tcp.services.unific-speed-test.loadbalancer.server.port: "6789"
       # UDP 3478 Port used for STUN. #REQUIRED
-      traefik.udp.routers.r-unific-stun.entrypoints: "unific_stun"
-      traefik.udp.routers.r-unific-stun.service: "svc-unific-stun"
-      traefik.udp.services.svc-unific-stun.loadbalancer.server.port: "3478"
+      traefik.udp.routers.unific-stun.entrypoints: "unific_stun"
+      traefik.udp.routers.unific-stun.service: "unific-stun"
+      traefik.udp.services.unific-stun.loadbalancer.server.port: "3478"
       # UDP 10001 Port used for device discovery #REQUIRED
-      traefik.udp.routers.r-unific-dev-discovery.entrypoints: "unific_dev_discovery"
-      traefik.udp.routers.r-unific-dev-discovery.service: "svc-unific-dev-discovery"
-      traefik.udp.services.svc-unific-dev-discovery.loadbalancer.server.port: "10001"
+      traefik.udp.routers.unific-dev-discovery.entrypoints: "unific_dev_discovery"
+      traefik.udp.routers.unific-dev-discovery.service: "unific-dev-discovery"
+      traefik.udp.services.unific-dev-discovery.loadbalancer.server.port: "10001"
       # UDP 1900 Port used for "Make controller discoverable on L2 network" in controller settings.
-      traefik.udp.routers.r-unific-ctrlr-discovery.entrypoints: "unific_controller_discovery"
-      traefik.udp.routers.r-unific-ctrlr-discovery.service: "svc-unific-ctrlr-discovery"
-      traefik.udp.services.svc-unific-ctrlr-discovery.loadbalancer.server.port: "19000"
+      traefik.udp.routers.unific-ctrlr-discovery.entrypoints: "unific_controller_discovery"
+      traefik.udp.routers.unific-ctrlr-discovery.service: "unific-ctrlr-discovery"
+      traefik.udp.services.unific-ctrlr-discovery.loadbalancer.server.port: "19000"
   register: unific_docker_started
 
 - name: Add unific container to any extra networks
